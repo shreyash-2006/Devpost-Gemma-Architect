@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment & local secrets
+.env
+.env.local
+
+# OS & IDE junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Build output
+dist/
+build/
+coverage/

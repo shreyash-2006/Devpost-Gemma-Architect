@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devpost Gemma Post Architect | Hacktoberfest AI Edition</title>
+  <meta name="description" content="AI-powered tool that analyzes your codebase and generates structured, compelling Devpost submissions for Hacktoberfest using Google Gemma models.">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-background">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="gemma-icon">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div>
+          <h1 class="brand-title">Devpost <span class="gradient-text">Gemma</span> Architect</h1>
+          <p class="brand-subtitle"><i class="fa-solid fa-code-commit"></i> Codebase Analysis & Hacktoberfest Devpost Generator</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="provider-badge" id="providerStatus">
+          <span class="pulse-dot green"></span>
+          <span id="activeModelName">Gemma-2-27b-it (Google AI Studio)</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="openSettingsBtn">
+          <i class="fa-solid fa-gear"></i> Gemma Config
+        </button>
+      </div>
+    </header>
+
+    <!-- Step Progress Indicator -->
+    <nav class="step-progress">
+      <div class="step-item active" data-step="1">
+        <span class="step-num">1</span>
+        <span class="step-label"><i class="fa-solid fa-folder-tree"></i> Analyze Codebase</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="2">
+        <span class="step-num">2</span>
+        <span class="step-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Tone & Context</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="3">
+        <span class="step-num">3</span>
+        <span class="step-label"><i class="fa-solid fa-pen-to-square"></i> Review & Refine</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="4">
+        <span class="step-num">4</span>
+        <span class="step-label"><i class="fa-solid fa-cloud-arrow-down"></i> Devpost Export</span>
+      </div>
+    </nav>
+
+    <!-- Main App Content Cards -->
+    <main class="main-content">
+
+      <!-- STEP 1: Codebase Input & Analysis -->
+      <section class="step-card active" id="step1">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-magnifying-glass-code"></i> Step 1: Scan Your Project Codebase</h2>
+          <p>Choose to analyze a local folder path on your machine or drag-and-drop code files directly.</p>
+        </div>
+
+        <div class="input-options-grid">
+          <!-- Local Path Scanner -->
+          <div class="option-card glass-panel">
+            <div class="option-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <h3>Scan Local Folder Path</h3>
+            <p>Scans files, package manifests, line counts, and snippets automatically.</p>
+            <div class="input-group">
+              <input type="text" id="localFolderPathInput" placeholder="e.g. D:/hacktober/my-awesome-project" class="form-control">
+              <button class="btn btn-primary" id="analyzePathBtn">
+                <i class="fa-solid fa-bolt"></i> Scan Folder
+              </button>
+            </div>
+            <span class="tip-text"><i class="fa-solid fa-circle-info"></i> Skips node_modules, .git, and binary files.</span>
+          </div>
+
+          <!-- Drag and Drop Virtual Files -->
+          <div class="option-card glass-panel">
+            <div class="option-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <h3>Upload Project Files</h3>
+            <p>Select multiple source code files, package.json, or README.md.</p>
+            <div class="dropzone" id="fileDropzone">
+              <input type="file" id="fileInput" multiple webkitdirectory directory hidden>
+              <i class="fa-solid fa-file-code drop-icon"></i>
+              <p>Drag & drop project files / folder here, or <span class="highlight-link" id="browseFilesBtn">Browse Files</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Results Preview Container -->
+        <div class="analysis-results-card glass-panel hidden" id="analysisResultContainer">
+          <div class="result-header">
+            <div>
+              <span class="badge badge-cyan"><i class="fa-solid fa-circle-check"></i> Codebase Analyzed</span>
+              <h3 id="resProjectName">Project Name</h3>
+              <p id="resProjectDesc">Project Description</p>
+            </div>
+            <div class="stat-group">
+              <div class="stat-box">
+                <span class="stat-val" id="resTotalFiles">0</span>
+                <span class="stat-lbl">Files</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-val" id="resTotalLines">0</span>
+                <span class="stat-lbl">Lines of Code</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tech Stack & Languages -->
+          <div class="analysis-details-grid">
+            <div class="detail-box">
+              <h4><i class="fa-solid fa-layer-group"></i> Detected Tech Stack</h4>
+              <div class="tags-container" id="resTechStack"></div>
+            </div>
+
+            <div class="detail-box">
+              <h4><i class="fa-solid fa-chart-pie"></i> Languages Breakdown</h4>
+              <div class="lang-bar" id="resLangBar"></div>
+              <div class="lang-legend" id="resLangLegend"></div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn btn-accent btn-lg" id="goToStep2Btn">
+              Proceed to Gemma AI Generator <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2: Gemma Configuration & Options -->
+      <section class="step-card hidden" id="step2">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-sliders"></i> Step 2: Configure Gemma AI & Devpost Context</h2>
+          <p>Customize the tone, highlight key hackathon features, or add special developer notes for Gemma.</p>
+        </div>
+
+        <div class="config-grid">
+          <!-- Left Column: Tone & Title -->
+          <div class="glass-panel form-section">
+            <h3><i class="fa-solid fa-bullhorn"></i> Tone & Headline</h3>
+            
+            <div class="form-group">
+              <label for="customProjectTitle">Custom Project Title</label>
+              <input type="text" id="customProjectTitle" class="form-control" placeholder="Project Name on Devpost">
+            </div>
+
+            <div class="form-group">
+              <label for="toneSelect">Select Devpost Tone</label>
+              <select id="toneSelect" class="form-control">
+                <option value="hacktober" selected>🎃 Hacktoberfest Open Source & Community (Recommended)</option>
+                <option value="technical">💻 Deep Technical & Professional Architecture</option>
+                <option value="enthusiastic">🔥 High Energy & Inspiring Storytelling</option>
+                <option value="concise">⚡ Clean, Bulleted & Concise</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Right Column: Additional Notes / Prompt Engineering -->
+          <div class="glass-panel form-section">
+            <h3><i class="fa-solid fa-note-sticky"></i> Developer Context & Special Notes</h3>
+            
+            <div class="form-group">
+              <label for="extraContextInput">Additional Feature Notes / What Inspired You?</label>
+              <textarea id="extraContextInput" class="form-control" rows="5" placeholder="e.g. We built this during a 48-hr Hacktoberfest sprint to make code reviews 10x faster. Features real-time Gemma 2 27B inference and clean modular design..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer space-between">
+          <button class="btn btn-secondary" id="backToStep1Btn">
+            <i class="fa-solid fa-arrow-left"></i> Back to Code Scanner
+          </button>
+          <button class="btn btn-gradient btn-lg" id="generateDevpostBtn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Devpost Post with Gemma
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 3: Devpost Section Review & Interactive Refiner -->
+      <section class="step-card hidden" id="step3">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-file-pen"></i> Step 3: Review & Edit Devpost Sections</h2>
+          <p>Fine-tune every section of your post. Use <strong>"Refine with Gemma"</strong> to rewrite or polish individual sections.</p>
+        </div>
+
+        <!-- Generation Loading Overlay -->
+        <div class="loading-state hidden" id="gemmaLoadingState">
+          <div class="spinner-ring"></div>
+          <h3 id="loadingText">Analyzing codebase with Gemma 2 AI...</h3>
+          <p>Crafting Devpost structure (Inspiration, How we built it, Challenges, What's next)...</p>
+        </div>
+
+        <!-- Editor View Split Layout -->
+        <div class="editor-workspace hidden" id="editorWorkspace">
+          <div class="sections-accordion" id="sectionsContainer">
+            <!-- Section cards dynamically populated here -->
+          </div>
+
+          <!-- Quick Preview Panel -->
+          <div class="preview-panel glass-panel">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-eye"></i> Devpost Preview</h3>
+              <div class="view-toggle">
+                <button class="toggle-btn active" id="toggleFormattedBtn">Formatted</button>
+                <button class="toggle-btn" id="toggleRawBtn">Raw Markdown</button>
+              </div>
+            </div>
+            <div class="preview-body" id="previewFormattedBody"></div>
+            <textarea class="raw-markdown-body hidden" id="previewRawBody" readonly></textarea>
+          </div>
+        </div>
+
+        <div class="card-footer space-between">
+          <button class="btn btn-secondary" id="backToStep2Btn">
+            <i class="fa-solid fa-arrow-left"></i> Back to Config
+          </button>
+          <button class="btn btn-primary btn-lg" id="goToStep4Btn">
+            Proceed to Devpost Tags & Export <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 4: Built With Tags & Export -->
+      <section class="step-card hidden" id="step4">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-circle-check"></i> Step 4: Ready for Devpost Submission!</h2>
+          <p>Copy individual form fields or download the complete Markdown document ready to paste into Devpost.</p>
+        </div>
+
+        <div class="export-grid">
+          <!-- Field Copy Cards -->
+          <div class="glass-panel export-card">
+            <h3><i class="fa-solid fa-quote-left"></i> Devpost Tagline / Pitch</h3>
+            <p>Paste into the <strong>"Elevator Pitch"</strong> field on Devpost.</p>
+            <div class="copy-box">
+              <input type="text" id="exportTagline" class="form-control" readonly>
+              <button class="btn btn-primary btn-sm copy-btn" data-target="exportTagline">
+                <i class="fa-solid fa-copy"></i> Copy Tagline
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel export-card">
+            <h3><i class="fa-solid fa-tags"></i> Built With Tags</h3>
+            <p>Paste into the <strong>"Built With"</strong> tag box on Devpost.</p>
+            <div class="copy-box">
+              <input type="text" id="exportBuiltWith" class="form-control" readonly>
+              <button class="btn btn-primary btn-sm copy-btn" data-target="exportBuiltWith">
+                <i class="fa-solid fa-copy"></i> Copy Tags
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel export-card full-width">
+            <h3><i class="fa-solid fa-file-markdown"></i> Complete Devpost Submission Markdown</h3>
+            <p>Paste directly into Devpost's <strong>Project Story</strong> editor (supports full markdown formatting).</p>
+            
+            <div class="export-actions-bar">
+              <button class="btn btn-gradient" id="copyFullMarkdownBtn">
+                <i class="fa-solid fa-copy"></i> Copy Full Markdown
+              </button>
+              <button class="btn btn-secondary" id="downloadMarkdownBtn">
+                <i class="fa-solid fa-file-arrow-down"></i> Download DEVPOST.md
+              </button>
+            </div>
+
+            <textarea id="exportFullMarkdownText" class="form-control markdown-output-area" rows="14" readonly></textarea>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn btn-secondary" id="backToStep3Btn">
+            <i class="fa-solid fa-arrow-left"></i> Back to Section Editor
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Built for <strong>Hacktoberfest</strong> using <strong>Google Gemma AI Models</strong> &bull; Devpost Post Generator Tool</p>
+    </footer>
+  </div>
+
+  <!-- Gemma API Key & Provider Modal -->
+  <div class="modal-backdrop hidden" id="settingsModal">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-brain"></i> Gemma Model Configuration</h3>
+        <button class="close-btn" id="closeSettingsBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="providerSelect">Gemma Provider</label>
+          <select id="providerSelect" class="form-control">
+            <option value="google" selected>Google AI Studio API (gemma-2-27b-it / gemma-2-9b-it)</option>
+            <option value="ollama">Local Gemma via Ollama (gemma3:4b / gemma3:12b / gemma3:1b)</option>
+            <option value="groq">Groq API (gemma2-9b-it)</option>
+            <option value="openrouter">OpenRouter API (google/gemma-2-27b-it)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="apiKeyGroup">
+          <label for="apiKeyInput">API Key</label>
+          <input type="password" id="apiKeyInput" class="form-control" placeholder="Enter your Gemma Provider API Key">
+          <span class="tip-text">Saved locally in your browser session.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="modelNameInput">Model Name</label>
+          <input type="text" id="modelNameInput" class="form-control" value="gemma-2-27b-it" placeholder="e.g. gemma-2-27b-it, gemma-2-9b-it, gemma2">
+        </div>
+
+        <div class="form-group hidden" id="ollamaHostGroup">
+          <label for="ollamaHostInput">Ollama Endpoint URL</label>
+          <input type="text" id="ollamaHostInput" class="form-control" value="http://localhost:11434">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="saveSettingsBtn"><i class="fa-solid fa-floppy-disk"></i> Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Refinement Modal -->
+  <div class="modal-backdrop hidden" id="refineModal">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Refine Section with Gemma</h3>
+        <button class="close-btn" id="closeRefineBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p>Refining section: <strong id="refineTargetSectionName">How we built it</strong></p>
+        
+        <div class="form-group">
+          <label for="refineInstructionInput">What changes would you like Gemma to make?</label>
+          <textarea id="refineInstructionInput" class="form-control" rows="4" placeholder="e.g. Add more detail about our database architecture and emphasize our 99% accuracy rate..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelRefineBtn">Cancel</button>
+        <button class="btn btn-gradient" id="submitRefineBtn">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Run Gemma Refinement
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic JavaScript -->
+  <script src="js/app.js"></script>
+</body>
+</html>
